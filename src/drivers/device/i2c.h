@@ -58,7 +58,11 @@ public:
 	/**
 	 * Get the address
 	 */
-	int16_t		get_address() { return _address; }
+	int16_t		get_address() const { return _address; }
+
+	static int	set_bus_clock(unsigned bus, unsigned clock_hz);
+
+	static unsigned	int	_bus_clocks[3];
 	
 protected:
 	/**
@@ -132,6 +136,7 @@ protected:
 	 */
 	void		set_address(uint16_t address) {
 		_address = address;
+		_device_id.devid_s.address = _address;
 	}
 
 private:

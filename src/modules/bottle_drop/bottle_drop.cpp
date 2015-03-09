@@ -57,8 +57,13 @@
 #include <uORB/uORB.h>
 #include <uORB/topics/vehicle_command.h>
 #include <uORB/topics/actuator_controls.h>
+#include <uORB/topics/actuator_controls_0.h>
+#include <uORB/topics/actuator_controls_1.h>
+#include <uORB/topics/actuator_controls_2.h>
+#include <uORB/topics/actuator_controls_3.h>
 #include <uORB/topics/wind_estimate.h>
 #include <uORB/topics/parameter_update.h>
+#include <uORB/topics/vehicle_global_position.h>
 #include <systemlib/systemlib.h>
 #include <systemlib/param/param.h>
 #include <systemlib/err.h>
@@ -523,6 +528,9 @@ BottleDrop::task_main()
 			}
 
 			switch (_drop_state) {
+				case DROP_STATE_INIT:
+					// do nothing
+					break;
 
 				case DROP_STATE_TARGET_VALID:
 				{
@@ -688,6 +696,10 @@ BottleDrop::task_main()
 						_onboard_mission.count = 0;
 						orb_publish(ORB_ID(onboard_mission), _onboard_mission_pub, &_onboard_mission);
 					}
+					break;
+
+				case DROP_STATE_BAY_CLOSED:
+					// do nothing
 					break;
 			}
 

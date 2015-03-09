@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *   Copyright (c) 2013, 2014 PX4 Development Team. All rights reserved.
+ *   Copyright (c) 2013-2015 PX4 Development Team. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -110,6 +110,7 @@ Navigator::Navigator() :
 	_param_update_sub(-1),
 	_pos_sp_triplet_pub(-1),
 	_mission_result_pub(-1),
+	_geofence_result_pub(-1),
 	_att_sp_pub(-1),
 	_vstatus{},
 	_control_mode{},
@@ -138,6 +139,7 @@ Navigator::Navigator() :
 	_can_loiter_at_sp(false),
 	_pos_sp_triplet_updated(false),
 	_pos_sp_triplet_published_invalid_once(false),
+	_mission_result_updated(false),
 	_param_loiter_radius(this, "LOITER_RAD"),
 	_param_acceptance_radius(this, "ACC_RAD"),
 	_param_datalinkloss_obc(this, "DLL_OBC"),
@@ -215,7 +217,7 @@ Navigator::vehicle_status_update()
 {
 	if (orb_copy(ORB_ID(vehicle_status), _vstatus_sub, &_vstatus) != OK) {
 		/* in case the commander is not be running */
-		_vstatus.arming_state = ARMING_STATE_STANDBY;
+		_vstatus.arming_state = vehicle_status_s::ARMING_STATE_STANDBY;
 	}
 }
 
@@ -245,9 +247,6 @@ Navigator::task_main_trampoline(int argc, char *argv[])
 void
 Navigator::task_main()
 {
-	/* inform about start */
-	warnx("Initializing..");
-
 	_mavlink_fd = open(MAVLINK_LOG_DEVICE, 0);
 	_geofence.setMavlinkFd(_mavlink_fd);
 
@@ -261,7 +260,7 @@ Navigator::task_main()
 		_geofence.loadFromFile(GEOFENCE_FILENAME);
 
 	} else {
-		mavlink_log_critical(_mavlink_fd, "#audio: No geofence file");
+		mavlink_log_info(_mavlink_fd, "No geofence set");
 		if (_geofence.clearDm() > 0)
 			warnx("Geofence cleared");
 		else
@@ -398,8 +397,8 @@ Navigator::task_main()
 			have_geofence_position_data = false;
 			if (!inside) {
 				/* inform other apps via the mission result */
-				_mission_result.geofence_violated = true;
-				publish_mission_result();
+				_geofence_result.geofence_violated = true;
+				publish_geofence_result();
 
 				/* Issue a warning about the geofence violation once */
 				if (!_geofence_violation_warning_sent) {
@@ -408,8 +407,8 @@ Navigator::task_main()
 				}
 			} else {
 				/* inform other apps via the mission result */
-				_mission_result.geofence_violated = false;
-				publish_mission_result();
+				_geofence_result.geofence_violated = false;
+				publish_geofence_result();
 				/* Reset the _geofence_violation_warning_sent field */
 				_geofence_violation_warning_sent = false;
 			}
@@ -417,25 +416,25 @@ Navigator::task_main()
 
 		/* Do stuff according to navigation state set by commander */
 		switch (_vstatus.nav_state) {
-			case NAVIGATION_STATE_MANUAL:
-			case NAVIGATION_STATE_ACRO:
-			case NAVIGATION_STATE_ALTCTL:
-			case NAVIGATION_STATE_POSCTL:
-			case NAVIGATION_STATE_LAND:
-			case NAVIGATION_STATE_TERMINATION:
-			case NAVIGATION_STATE_OFFBOARD:
+			case vehicle_status_s::NAVIGATION_STATE_MANUAL:
+			case vehicle_status_s::NAVIGATION_STATE_ACRO:
+			case vehicle_status_s::NAVIGATION_STATE_ALTCTL:
+			case vehicle_status_s::NAVIGATION_STATE_POSCTL:
+			case vehicle_status_s::NAVIGATION_STATE_LAND:
+			case vehicle_status_s::NAVIGATION_STATE_TERMINATION:
+			case vehicle_status_s::NAVIGATION_STATE_OFFBOARD:
 				_navigation_mode = nullptr;
 				_can_loiter_at_sp = false;
 				break;
-			case NAVIGATION_STATE_AUTO_MISSION:
+			case vehicle_status_s::NAVIGATION_STATE_AUTO_MISSION:
 				_pos_sp_triplet_published_invalid_once = false;
 				_navigation_mode = &_mission;
 				break;
-			case NAVIGATION_STATE_AUTO_LOITER:
+			case vehicle_status_s::NAVIGATION_STATE_AUTO_LOITER:
 				_pos_sp_triplet_published_invalid_once = false;
 				_navigation_mode = &_loiter;
 				break;
-			case NAVIGATION_STATE_AUTO_RCRECOVER:
+			case vehicle_status_s::NAVIGATION_STATE_AUTO_RCRECOVER:
 				_pos_sp_triplet_published_invalid_once = false;
 				if (_param_rcloss_obc.get() != 0) {
 					_navigation_mode = &_rcLoss;
@@ -443,11 +442,11 @@ Navigator::task_main()
 					_navigation_mode = &_rtl;
 				}
 				break;
-			case NAVIGATION_STATE_AUTO_RTL:
+			case vehicle_status_s::NAVIGATION_STATE_AUTO_RTL:
 				_pos_sp_triplet_published_invalid_once = false;
 				_navigation_mode = &_rtl;
 				break;
-			case NAVIGATION_STATE_AUTO_RTGS:
+			case vehicle_status_s::NAVIGATION_STATE_AUTO_RTGS:
 				/* Use complex data link loss mode only when enabled via param
 				* otherwise use rtl */
 				_pos_sp_triplet_published_invalid_once = false;
@@ -457,11 +456,11 @@ Navigator::task_main()
 					_navigation_mode = &_rtl;
 				}
 				break;
-			case NAVIGATION_STATE_AUTO_LANDENGFAIL:
+			case vehicle_status_s::NAVIGATION_STATE_AUTO_LANDENGFAIL:
 				_pos_sp_triplet_published_invalid_once = false;
 				_navigation_mode = &_engineFailure;
 				break;
-			case NAVIGATION_STATE_AUTO_LANDGPSFAIL:
+			case vehicle_status_s::NAVIGATION_STATE_AUTO_LANDGPSFAIL:
 				_pos_sp_triplet_published_invalid_once = false;
 				_navigation_mode = &_gpsFailure;
 				break;
@@ -488,6 +487,11 @@ Navigator::task_main()
 		if (_pos_sp_triplet_updated) {
 			publish_position_setpoint_triplet();
 			_pos_sp_triplet_updated = false;
+		}
+
+		if (_mission_result_updated) {
+			publish_mission_result();
+			_mission_result_updated = false;
 		}
 
 		perf_end(_loop_perf);
@@ -638,6 +642,28 @@ Navigator::publish_mission_result()
 	} else {
 		/* advertise and publish */
 		_mission_result_pub = orb_advertise(ORB_ID(mission_result), &_mission_result);
+	}
+
+	/* reset some of the flags */
+	_mission_result.seq_reached = false;
+	_mission_result.seq_current = 0;
+	_mission_result.item_do_jump_changed = false;
+	_mission_result.item_changed_index = 0;
+	_mission_result.item_do_jump_remaining = 0;
+}
+
+void
+Navigator::publish_geofence_result()
+{
+
+	/* lazily publish the geofence result only once available */
+	if (_geofence_result_pub > 0) {
+		/* publish mission result */
+		orb_publish(ORB_ID(geofence_result), _geofence_result_pub, &_geofence_result);
+
+	} else {
+		/* advertise and publish */
+		_geofence_result_pub = orb_advertise(ORB_ID(geofence_result), &_geofence_result);
 	}
 }
 

@@ -45,7 +45,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "../uORB.h"
+#include <platforms/px4_defines.h>
 
 /**
  * @addtogroup topics
@@ -62,7 +62,7 @@
  */
 struct vehicle_global_position_s {
 	uint64_t timestamp;		/**< Time of this estimate, in microseconds since system start		*/
-	uint64_t time_gps_usec;		/**< GPS timestamp in microseconds					   */
+	uint64_t time_utc_usec;		/**< GPS UTC timestamp in microseconds					   */
 	double lat;			/**< Latitude in degrees							 	   */
 	double lon;			/**< Longitude in degrees							 	   */
 	float alt;			/**< Altitude AMSL in meters						 	   */
@@ -74,6 +74,7 @@ struct vehicle_global_position_s {
 	float epv;			/**< Standard deviation of position vertically */
 	float terrain_alt;		/**< Terrain altitude in m, WGS84 */
 	bool terrain_alt_valid;		/**< Terrain altitude estimate is valid */
+	bool dead_reckoning;		/**< True if this position is estimated through dead-reckoning*/
 };
 
 /**

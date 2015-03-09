@@ -42,3 +42,7 @@ SRCS		 = attitude_estimator_ekf_main.cpp \
 		   codegen/AttitudeEKF.c
 
 MODULE_STACKSIZE = 1200
+
+EXTRACFLAGS = -Wno-float-equal -Wframe-larger-than=3700
+
+EXTRACXXFLAGS = -Wframe-larger-than=2400

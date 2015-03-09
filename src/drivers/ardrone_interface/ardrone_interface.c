@@ -55,6 +55,10 @@
 #include <uORB/uORB.h>
 #include <uORB/topics/safety.h>
 #include <uORB/topics/actuator_controls.h>
+#include <uORB/topics/actuator_controls_0.h>
+#include <uORB/topics/actuator_controls_1.h>
+#include <uORB/topics/actuator_controls_2.h>
+#include <uORB/topics/actuator_controls_3.h>
 #include <uORB/topics/actuator_armed.h>
 #include <uORB/topics/vehicle_control_mode.h>
 
@@ -98,7 +102,7 @@ usage(const char *reason)
  * The deamon app only briefly exists to start
  * the background job. The stack size assigned in the
  * Makefile does only apply to this management task.
- * 
+ *
  * The actual stack size should be set in the call
  * to task_create().
  */
@@ -121,7 +125,7 @@ int ardrone_interface_main(int argc, char *argv[])
 						    SCHED_PRIORITY_MAX - 15,
 						    1100,
 						    ardrone_interface_thread_main,
-						    (argv) ? (const char **)&argv[2] : (const char **)NULL);
+						    (argv) ? (char * const *)&argv[2] : (char * const *)NULL);
 		exit(0);
 	}
 
@@ -319,7 +323,7 @@ int ardrone_interface_thread_main(int argc, char *argv[])
 			/* get a local copy of the actuator controls */
 			orb_copy(ORB_ID_VEHICLE_ATTITUDE_CONTROLS, actuator_controls_sub, &actuator_controls);
 			orb_copy(ORB_ID(actuator_armed), armed_sub, &armed);
-			
+
 			/* for now only spin if armed and immediately shut down
 			 * if in failsafe
 			 */
