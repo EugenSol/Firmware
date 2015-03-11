@@ -91,6 +91,7 @@ public:
 
 private:
 	//******************flags & handlers******************************************************
+	hrt_abstime     stime;          /**< if true, task_main() should exit */
 	bool	_task_should_exit;		/**< if true, task_main() should exit */
 	int		_control_task;			/**< task handle */
 
@@ -197,7 +198,6 @@ UuvAttitudeControl::task_main()
 		orb_copy(ORB_ID(battery_status), _bat_stat_sub, &_bat_stat);
 
 		/* Print ekf values */
-		hrt_abstime stime;
 		if (hrt_absolute_time() - stime > 500000){
 		    				    	printf("Ang:\t%8.4f\t%8.4f\t%8.4f\n",
 		    				    			(double)_v_att.roll,

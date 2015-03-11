@@ -58,6 +58,10 @@
 #include <uORB/topics/vehicle_attitude_setpoint.h>
 #include <uORB/topics/manual_control_setpoint.h>
 #include <uORB/topics/actuator_controls.h>
+#include <uORB/topics/actuator_controls_0.h>
+#include <uORB/topics/actuator_controls_1.h>
+#include <uORB/topics/actuator_controls_2.h>
+#include <uORB/topics/actuator_controls_3.h>
 #include <uORB/topics/actuator_armed.h>
 #include <uORB/topics/battery_status.h>
 #include <geo/geo.h>
@@ -66,10 +70,11 @@
 #include <systemlib/err.h>
 #include <sys/ioctl.h>
 
-#include <nuttx/fs/nxffs.h>
+
 #include <nuttx/fs/ioctl.h>
 #include <arch/board/board.h>
 #include "drivers/drv_pwm_output.h"
+//#include <nuttx/fs/nxffs.h>
 
 /* process-specific header files
 #include "params.h" */
@@ -136,7 +141,7 @@ int ROV_main(int argc, char *argv[])
 			float thrust_set = 0.0f; // thrust setpoint
 
     /* Open PWM device driver*/
-    int fd = open(&PWM_OUTPUT_DEVICE_PATH, 0);
+    int fd = open(PWM_OUTPUT0_DEVICE_PATH, 0);
 
     /* Print to console */
     printf("Start. Press g after ESCs ready. \n");
