@@ -102,6 +102,7 @@ struct log_SENS_s {
 	float baro_temp;
 	float diff_pres;
 	float diff_pres_filtered;
+	float adc_pressure;
 };
 
 /* --- LPOS - LOCAL POSITION --- */
@@ -477,7 +478,7 @@ static const struct log_format_s log_formats[] = {
 	LOG_FORMAT_S(IMU, IMU, "ffffffffffff",		"AccX,AccY,AccZ,GyroX,GyroY,GyroZ,MagX,MagY,MagZ,tA,tG,tM"),
 	LOG_FORMAT_S(IMU1, IMU, "ffffffffffff",		"AccX,AccY,AccZ,GyroX,GyroY,GyroZ,MagX,MagY,MagZ,tA,tG,tM"),
 	LOG_FORMAT_S(IMU2, IMU, "ffffffffffff",		"AccX,AccY,AccZ,GyroX,GyroY,GyroZ,MagX,MagY,MagZ,tA,tG,tM"),
-	LOG_FORMAT_S(SENS, SENS, "fffff",		"BaroPres,BaroAlt,BaroTemp,DiffPres,DiffPresFilt"),
+	LOG_FORMAT_S(SENS, SENS, "ffffff",		"BaroPres,BaroAlt,BaroTemp,DiffPres,DiffPresFilt,adcPres"),
 	LOG_FORMAT_S(AIR1, SENS, "fffff",	"BaroPa,BaroAlt,BaroTmp,DiffPres,DiffPresF"),
 	LOG_FORMAT(LPOS, "ffffffffLLfBBff",	"X,Y,Z,Dist,DistR,VX,VY,VZ,RLat,RLon,RAlt,PFlg,GFlg,EPH,EPV"),
 	LOG_FORMAT(LPSP, "ffffffffff",		"X,Y,Z,Yaw,VX,VY,VZ,AX,AY,AZ"),
