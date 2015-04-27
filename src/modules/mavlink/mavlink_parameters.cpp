@@ -74,7 +74,6 @@ MavlinkParametersManager::handle_message(const mavlink_message_t *msg)
 			    (req_list.target_component == mavlink_system.compid || req_list.target_component == MAV_COMP_ID_ALL)) {
 
 				_send_all_index = 0;
-				_mavlink->send_statustext_info("[pm] sending list");
 			}
 			break;
 		}
@@ -131,7 +130,7 @@ MavlinkParametersManager::handle_message(const mavlink_message_t *msg)
 
 				} else {
 					/* when index is >= 0, send this parameter again */
-					send_param(param_for_index(req_read.param_index));
+					send_param(param_for_used_index(req_read.param_index));
 				}
 			}
 			break;
@@ -193,6 +192,7 @@ MavlinkParametersManager::send(const hrt_abstime t)
 		/* look for the first parameter which is used */
 		param_t p;
 		do {
+			/* walk through all parameters, including unused ones */
 			p = param_for_index(_send_all_index);
 			_send_all_index++;
 		} while (p != PARAM_INVALID && !param_used(p));
@@ -201,7 +201,7 @@ MavlinkParametersManager::send(const hrt_abstime t)
 			send_param(p);
 		}
 
-		if (_send_all_index >= (int) param_count()) {
+		if ((p == PARAM_INVALID) || (_send_all_index >= (int) param_count())) {
 			_send_all_index = -1;
 		}
 	}
