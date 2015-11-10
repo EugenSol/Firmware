@@ -130,11 +130,11 @@ float ECL_Controller::get_desired_bodyrate()
 
 float ECL_Controller::constrain_airspeed(float airspeed, float minspeed, float maxspeed) {
 	float airspeed_result = airspeed;
-	if (!isfinite(airspeed)) {
+	if (!PX4_ISFINITE(airspeed)) {
 		/* airspeed is NaN, +- INF or not available, pick center of band */
-		airspeed = 0.5f * (minspeed + maxspeed);
+		airspeed_result = 0.5f * (minspeed + maxspeed);
 	} else if (airspeed < minspeed) {
-		airspeed = minspeed;
+		airspeed_result = minspeed;
 	}
 	return airspeed_result;
 }

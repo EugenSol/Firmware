@@ -249,7 +249,7 @@ __EXPORT void		param_reset_all(void);
  *							at the end to exclude parameters with a certain prefix.
  * @param num_excludes		The number of excludes provided.
  */
- __EXPORT void		param_reset_excludes(const char* excludes[], int num_excludes);
+__EXPORT void		param_reset_excludes(const char *excludes[], int num_excludes);
 
 /**
  * Export changed parameters to a file.
@@ -306,16 +306,16 @@ __EXPORT void		param_foreach(void (*func)(void *arg, param_t param), void *arg, 
  *			exist.
  * @return		Zero on success.
  */
-__EXPORT int 		param_set_default_file(const char* filename);
+__EXPORT int 		param_set_default_file(const char *filename);
 
 /**
  * Get the default parameter file name.
  *
  * @return		The path to the current default parameter file; either as
- *			a result of a call to param_set_default_file, or the 
+ *			a result of a call to param_set_default_file, or the
  *			built-in default.
  */
-__EXPORT const char*	param_get_default_file(void);
+__EXPORT const char	*param_get_default_file(void);
 
 /**
  * Save parameters to the default file.
@@ -333,6 +333,13 @@ __EXPORT int 		param_save_default(void);
  */
 __EXPORT int 		param_load_default(void);
 
+/**
+ * Generate the hash of all parameters and their values
+ *
+ * @return		CRC32 hash of all param_ids and values
+ */
+__EXPORT uint32_t	param_hash_check(void);
+
 /*
  * Macros creating static parameter definitions.
  *
@@ -346,34 +353,13 @@ __EXPORT int 		param_load_default(void);
  */
 
 /** define an int32 parameter */
-#define PARAM_DEFINE_INT32(_name, _default)		\
-	static const					\
-	__attribute__((used, section("__param")))	\
-	struct param_info_s __param__##_name = {	\
-		#_name,					\
-		PARAM_TYPE_INT32,			\
-		.val.i = _default			\
-	}
+#define PARAM_DEFINE_INT32(_name, _default)
 
 /** define a float parameter */
-#define PARAM_DEFINE_FLOAT(_name, _default)		\
-	static const					\
-	__attribute__((used, section("__param")))	\
-	struct param_info_s __param__##_name = {	\
-		#_name,					\
-		PARAM_TYPE_FLOAT,			\
-		.val.f = _default			\
-	}
+#define PARAM_DEFINE_FLOAT(_name, _default)
 
 /** define a parameter that points to a structure */
-#define PARAM_DEFINE_STRUCT(_name, _default)		\
-	static const					\
-	__attribute__((used, section("__param")))	\
-	struct param_info_s __param__##_name = {	\
-		#_name,					\
-		PARAM_TYPE_STRUCT + sizeof(_default),	\
-		.val.p = &_default			\
-	}
+#define PARAM_DEFINE_STRUCT(_name, _default)
 
 /**
  * Parameter value union.
@@ -391,7 +377,23 @@ union param_value_u {
  * instead.
  */
 struct param_info_s {
-	const char	*name;
+	const char	*name
+
+// GCC 4.8 and higher don't implement proper alignment of static data on
+// 64-bit. This means that the 24-byte param_info_s variables are
+// 16 byte aligned by GCC and that messes up the assumption that
+// sequential items in the __param segment can be addressed as an array.
+// The assumption is that the address of the second parameter is at
+// &param[0]+sizeof(param[0]). When compiled with clang it is
+// true, with gcc is is not true.
+// See https://llvm.org/bugs/show_bug.cgi?format=multiple&id=18006
+// The following hack is for GCC >=4.8 only. Clang works fine without
+// this.
+#ifdef __PX4_POSIX
+	__attribute__((aligned(16)));
+#else
+	;
+#endif
 	param_type_t	type;
 	union param_value_u val;
 };

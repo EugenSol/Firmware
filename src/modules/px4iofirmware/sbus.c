@@ -37,7 +37,7 @@
  * Serial protocol decoder for the Futaba S.bus protocol.
  */
 
-#include <nuttx/config.h>
+#include <px4_config.h>
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -163,8 +163,8 @@ sbus1_output(uint16_t *values, uint16_t num_values)
 void
 sbus2_output(uint16_t *values, uint16_t num_values)
 {
-	// XXX S.BUS2 is not implemented, fall back to S.BUS1
-	sbus1_output(values, num_values);
+	char b = 'B';
+	write(sbus_fd, &b, 1);
 }
 
 bool

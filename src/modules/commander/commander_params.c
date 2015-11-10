@@ -1,7 +1,6 @@
 /****************************************************************************
  *
- *   Copyright (c) 2013 PX4 Development Team. All rights reserved.
- *   Author: Lorenz Meier <lm@inf.ethz.ch>
+ *   Copyright (c) 2013-2015 PX4 Development Team. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,16 +36,54 @@
  *
  * Parameters defined by the sensors task.
  *
- * @author Lorenz Meier <lm@inf.ethz.ch>
- * @author Thomas Gubler <thomasgubler@student.ethz.ch>
- * @author Julian Oes <julian@oes.ch>
+ * @author Lorenz Meier <lorenz@px4.io>
+ * @author Thomas Gubler <thomas@px4.io>
+ * @author Julian Oes <julian@px4.io>
  */
 
-#include <nuttx/config.h>
+#include <px4_config.h>
 #include <systemlib/param/param.h>
 
+/**
+ * Roll trim
+ *
+ * The trim value is the actuator control value the system needs
+ * for straight and level flight. It can be calibrated by
+ * flying manually straight and level using the RC trims and
+ * copying them using the GCS.
+ *
+ * @group Radio Calibration
+ * @min -0.25
+ * @max 0.25
+ */
 PARAM_DEFINE_FLOAT(TRIM_ROLL, 0.0f);
+
+/**
+ * Pitch trim
+ *
+ * The trim value is the actuator control value the system needs
+ * for straight and level flight. It can be calibrated by
+ * flying manually straight and level using the RC trims and
+ * copying them using the GCS.
+ *
+ * @group Radio Calibration
+ * @min -0.25
+ * @max 0.25
+ */
 PARAM_DEFINE_FLOAT(TRIM_PITCH, 0.0f);
+
+/**
+ * Yaw trim
+ *
+ * The trim value is the actuator control value the system needs
+ * for straight and level flight. It can be calibrated by
+ * flying manually straight and level using the RC trims and
+ * copying them using the GCS.
+ *
+ * @group Radio Calibration
+ * @min -0.25
+ * @max 0.25
+ */
 PARAM_DEFINE_FLOAT(TRIM_YAW, 0.0f);
 
 /**
@@ -77,6 +114,7 @@ PARAM_DEFINE_FLOAT(BAT_V_CHARGED, 4.2f);
  *
  * @group Battery Calibration
  * @unit V
+ * @min 0.0
  */
 PARAM_DEFINE_FLOAT(BAT_V_LOAD_DROP, 0.07f);
 
@@ -87,6 +125,8 @@ PARAM_DEFINE_FLOAT(BAT_V_LOAD_DROP, 0.07f);
  *
  * @group Battery Calibration
  * @unit S
+ * @min 1
+ * @max 10
  */
 PARAM_DEFINE_INT32(BAT_N_CELLS, 3);
 
@@ -111,7 +151,8 @@ PARAM_DEFINE_FLOAT(BAT_CAPACITY, -1.0f);
  */
 PARAM_DEFINE_INT32(COM_DL_LOSS_EN, 0);
 
- /** Datalink loss time threshold
+/**
+ * Datalink loss time threshold
  *
  * After this amount of seconds without datalink the data link lost mode triggers
  *
@@ -122,7 +163,8 @@ PARAM_DEFINE_INT32(COM_DL_LOSS_EN, 0);
  */
 PARAM_DEFINE_INT32(COM_DL_LOSS_T, 10);
 
-/** Datalink regain time threshold
+/**
+ * Datalink regain time threshold
  *
  * After a data link loss: after this this amount of seconds with a healthy datalink the 'datalink loss'
  * flag is set back to false
@@ -134,7 +176,8 @@ PARAM_DEFINE_INT32(COM_DL_LOSS_T, 10);
  */
 PARAM_DEFINE_INT32(COM_DL_REG_T, 0);
 
-/** Engine Failure Throttle Threshold
+/**
+ * Engine Failure Throttle Threshold
  *
  * Engine failure triggers only above this throttle value
  *
@@ -144,17 +187,20 @@ PARAM_DEFINE_INT32(COM_DL_REG_T, 0);
  */
 PARAM_DEFINE_FLOAT(COM_EF_THROT, 0.5f);
 
-/** Engine Failure Current/Throttle Threshold
+/**
+ * Engine Failure Current/Throttle Threshold
  *
- * Engine failure triggers only below this current/throttle value
+ * Engine failure triggers only below this current value
  *
  * @group Commander
  * @min 0.0
- * @max 7.0
+ * @max 30.0
+ * @unit ampere
  */
 PARAM_DEFINE_FLOAT(COM_EF_C2T, 5.0f);
 
-/** Engine Failure Time Threshold
+/**
+ * Engine Failure Time Threshold
  *
  * Engine failure triggers only if the throttle threshold and the
  * current to throttle threshold are violated for this time
@@ -162,11 +208,12 @@ PARAM_DEFINE_FLOAT(COM_EF_C2T, 5.0f);
  * @group Commander
  * @unit second
  * @min 0.0
- * @max 7.0
+ * @max 60.0
  */
 PARAM_DEFINE_FLOAT(COM_EF_TIME, 10.0f);
 
-/** RC loss time threshold
+/**
+ * RC loss time threshold
  *
  * After this amount of seconds without RC connection the rc lost flag is set to true
  *
@@ -175,9 +222,34 @@ PARAM_DEFINE_FLOAT(COM_EF_TIME, 10.0f);
  * @min 0
  * @max 35
  */
-PARAM_DEFINE_FLOAT(COM_RC_LOSS_T, 0.5);
+PARAM_DEFINE_FLOAT(COM_RC_LOSS_T, 0.5f);
 
-/** Autosaving of params
+/**
+ * Home set horizontal threshold
+ *
+ * The home position will be set if the estimated positioning accuracy is below the threshold.
+ *
+ * @group Commander
+ * @unit meter
+ * @min 2
+ * @max 15
+ */
+PARAM_DEFINE_FLOAT(COM_HOME_H_T, 5.0f);
+
+/**
+ * Home set vertical threshold
+ *
+ * The home position will be set if the estimated positioning accuracy is below the threshold.
+ *
+ * @group Commander
+ * @unit meter
+ * @min 5
+ * @max 25
+ */
+PARAM_DEFINE_FLOAT(COM_HOME_V_T, 10.0f);
+
+/**
+ * Autosaving of params
  *
  * If not equal to zero the commander will automatically save parameters to persistent storage once changed.
  * Default is on, as the interoperability with currently deployed GCS solutions depends on parameters
@@ -188,3 +260,30 @@ PARAM_DEFINE_FLOAT(COM_RC_LOSS_T, 0.5);
  * @max 1
  */
 PARAM_DEFINE_INT32(COM_AUTOS_PAR, 1);
+
+/**
+ * RC control input mode
+ *
+ * The default value of 0 requires a valid RC transmitter setup.
+ * Setting this to 1 disables RC input handling and the associated checks. A value of
+ * 2 will generate RC control data from manual input received via MAVLink instead
+ * of directly forwarding the manual input data.
+ *
+ * @group Commander
+ * @min 0
+ * @max 2
+ */
+PARAM_DEFINE_INT32(COM_RC_IN_MODE, 0);
+
+/**
+ * Time-out for auto disarm after landing
+ *
+ * A non-zero, positive value specifies the time-out period in seconds after which the vehicle will be
+ * automatically disarmed in case a landing situation has been detected during this period.
+ * A value of zero means that automatic disarming is disabled.
+ *
+ * @group Commander
+ * @min 0
+ */
+PARAM_DEFINE_INT32(COM_DISARM_LAND, 0);
+

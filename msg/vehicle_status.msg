@@ -7,7 +7,9 @@ uint8 MAIN_STATE_AUTO_LOITER = 4
 uint8 MAIN_STATE_AUTO_RTL = 5
 uint8 MAIN_STATE_ACRO = 6
 uint8 MAIN_STATE_OFFBOARD = 7
-uint8 MAIN_STATE_MAX = 8
+uint8 MAIN_STATE_STAB = 8
+uint8 MAIN_STATE_RATTITUDE = 9
+uint8 MAIN_STATE_MAX = 10
 
 # If you change the order, add or remove arming_state_t states make sure to update the arrays
 # in state_machine_helper.cpp as well.
@@ -39,7 +41,9 @@ uint8 NAVIGATION_STATE_LAND = 11		# Land mode
 uint8 NAVIGATION_STATE_DESCEND = 12		# Descend mode (no position control)
 uint8 NAVIGATION_STATE_TERMINATION = 13		# Termination mode
 uint8 NAVIGATION_STATE_OFFBOARD = 14
-uint8 NAVIGATION_STATE_MAX = 15
+uint8 NAVIGATION_STATE_STAB = 15		# Stabilized mode
+uint8 NAVIGATION_STATE_RATTITUDE = 16		# Rattitude (aka "flip") mode
+uint8 NAVIGATION_STATE_MAX = 17
 
 # VEHICLE_MODE_FLAG, same as MAV_MODE_FLAG of MAVLink 1.0 protocol
 uint8 VEHICLE_MODE_FLAG_SAFETY_ARMED = 128
@@ -72,12 +76,25 @@ uint8 VEHICLE_TYPE_FLAPPING_WING = 16	    # Flapping wing
 uint8 VEHICLE_TYPE_KITE = 17		    # Kite
 uint8 VEHICLE_TYPE_ONBOARD_CONTROLLER=18    # Onboard companion controller
 uint8 VEHICLE_TYPE_VTOL_DUOROTOR = 19	    # Vtol with two engines
-uint8 VEHICLE_TYPE_VTOL_QUADROTOR = 20	    # Vtol with four engines*/
-uint8 VEHICLE_TYPE_ENUM_END = 21
+uint8 VEHICLE_TYPE_VTOL_QUADROTOR = 20	    # Vtol with four engines
+uint8 VEHICLE_TYPE_VTOL_HEXAROTOR = 21 		# Vtol with six engines
+uint8 VEHICLE_TYPE_VTOL_OCTOROTOR = 22		# Vtol with eight engines
+uint8 VEHICLE_TYPE_ENUM_END = 23
+
+# VEHICLE_VTOL_STATE, should match 1:1 MAVLinks's MAV_VTOL_STATE
+uint8 VEHICLE_VTOL_STATE_UNDEFINED = 0
+uint8 VEHICLE_VTOL_STATE_TRANSITION_TO_FW = 1
+uint8 VEHICLE_VTOL_STATE_TRANSITION_TO_MC = 2
+uint8 VEHICLE_VTOL_STATE_MC = 3
+uint8 VEHICLE_VTOL_STATE_FW = 4
 
 uint8 VEHICLE_BATTERY_WARNING_NONE = 0	    # no battery low voltage warning active
 uint8 VEHICLE_BATTERY_WARNING_LOW = 1	    # warning of low voltage
 uint8 VEHICLE_BATTERY_WARNING_CRITICAL = 2  # alerting of critical voltage
+
+uint8 RC_IN_MODE_DEFAULT = 0
+uint8 RC_IN_MODE_OFF = 1
+uint8 RC_IN_MODE_GENERATED = 2
 
 # state machine / state of vehicle.
 # Encodes the complete system state and is set by the commander app.
@@ -89,14 +106,16 @@ uint8 nav_state				# set navigation state machine to specified value
 uint8 arming_state			# current arming state
 uint8 hil_state				# current hil state
 bool failsafe				# true if system is in failsafe state
+bool calibration_enabled		# true if current calibrating parts of the system. Also sets the system to ARMING_STATE_INIT.
 
 int32 system_type			# system type, inspired by MAVLink's VEHICLE_TYPE enum
-int32 system_id				# system id, inspired by MAVLink's system ID field
-int32 component_id			# subsystem / component id, inspired by MAVLink's component ID field
+uint32 system_id			# system id, inspired by MAVLink's system ID field
+uint32 component_id			# subsystem / component id, inspired by MAVLink's component ID field
 
 bool is_rotary_wing			# True if system is in rotary wing configuration, so for a VTOL this is only true while flying as a multicopter
 bool is_vtol				# True if the system is VTOL capable
 bool vtol_fw_permanent_stab		# True if vtol should stabilize attitude for fw in manual mode
+bool in_transition_mode
 
 bool condition_battery_voltage_valid
 bool condition_system_in_air_restore		# true if we can restore in mid air
@@ -104,7 +123,6 @@ bool condition_system_sensors_initialized
 bool condition_system_returned_to_home
 bool condition_auto_mission_available
 bool condition_global_position_valid		# set to true by the commander app if the quality of the position estimate is good enough to use it for navigation
-bool condition_launch_position_valid		# indicates a valid launch position
 bool condition_home_position_valid		# indicates a valid home position (a valid home position is not always a valid launch)
 bool condition_local_position_valid
 bool condition_local_altitude_valid
@@ -118,7 +136,8 @@ bool rc_signal_found_once
 bool rc_signal_lost				# true if RC reception lost
 uint64 rc_signal_lost_timestamp			# Time at which the RC reception was lost
 bool rc_signal_lost_cmd				# true if RC lost mode is commanded
-bool rc_input_blocked				# set if RC input should be ignored
+bool rc_input_blocked				# set if RC input should be ignored temporarily
+uint8 rc_input_mode				# set to 1 to disable the RC input, 2 to enable manual control to RC in mapping.
 
 bool data_link_lost				# datalink to GCS lost
 bool data_link_lost_cmd				# datalink to GCS lost mode commanded
@@ -145,6 +164,8 @@ float32 load					# processor load from 0 to 1
 float32 battery_voltage
 float32 battery_current
 float32 battery_remaining
+float32 battery_discharged_mah
+uint32 battery_cell_count
 
 uint8 battery_warning    # current battery warning mode, as defined by VEHICLE_BATTERY_WARNING enum
 uint16 drop_rate_comm

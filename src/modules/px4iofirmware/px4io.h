@@ -37,7 +37,7 @@
  * General defines and structures for the PX4IO module firmware.
  */
 
-#include <nuttx/config.h>
+#include <px4_config.h>
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -51,8 +51,7 @@
 /*
  * Constants and limits.
  */
-#define PX4IO_SERVO_COUNT		16
-#define PX4IO_SERVO_HARDWARE_COUNT	8
+#define PX4IO_SERVO_COUNT		8
 #define PX4IO_CONTROL_CHANNELS		8
 #define PX4IO_CONTROL_GROUPS		4
 #define PX4IO_RC_INPUT_CHANNELS		18
@@ -111,6 +110,12 @@ extern uint16_t			r_page_servo_disarmed[];	/* PX4IO_PAGE_DISARMED_PWM */
 #define r_setup_relays		r_page_setup[PX4IO_P_SETUP_RELAYS]
 #endif
 #define r_setup_rc_thr_failsafe	r_page_setup[PX4IO_P_SETUP_RC_THR_FAILSAFE_US]
+
+#define r_setup_pwm_reverse	r_page_setup[PX4IO_P_SETUP_PWM_REVERSE]
+
+#define r_setup_trim_roll	r_page_setup[PX4IO_P_SETUP_TRIM_ROLL]
+#define r_setup_trim_pitch	r_page_setup[PX4IO_P_SETUP_TRIM_PITCH]
+#define r_setup_trim_yaw	r_page_setup[PX4IO_P_SETUP_TRIM_YAW]
 
 #define r_control_values	(&r_page_controls[0])
 
@@ -185,6 +190,8 @@ extern pwm_limit_t pwm_limit;
  */
 extern void	mixer_tick(void);
 extern int	mixer_handle_text(const void *buffer, size_t length);
+/* Set the failsafe values of all mixed channels (based on zero throttle, controls centered) */
+extern void	mixer_set_failsafe(void);
 
 /**
  * Safety switch/LED.

@@ -39,10 +39,6 @@
  * @author Julian Oes <joes@student.ethz.ch>
  */
 
-#include <nuttx/config.h>
-
-#include <systemlib/param/param.h>
-
 /*
  * Mission parameters, accessible via MAVLink
  */
@@ -81,7 +77,7 @@ PARAM_DEFINE_INT32(MIS_ONBOARD_EN, 1);
  * @max 1000
  * @group Mission
  */
-PARAM_DEFINE_FLOAT(MIS_DIST_1WP, 500);
+PARAM_DEFINE_FLOAT(MIS_DIST_1WP, 900);
 
 /**
  * Altitude setpoint mode
@@ -94,7 +90,7 @@ PARAM_DEFINE_FLOAT(MIS_DIST_1WP, 500);
  * @max 1
  * @group Mission
  */
-PARAM_DEFINE_INT32(MIS_ALTMODE, 0);
+PARAM_DEFINE_INT32(MIS_ALTMODE, 1);
 
 /**
  * Multirotor only. Yaw setpoint mode.
@@ -110,4 +106,4 @@ PARAM_DEFINE_INT32(MIS_ALTMODE, 0);
  * @max 3
  * @group Mission
  */
-PARAM_DEFINE_INT32(MIS_YAWMODE, 0);
+PARAM_DEFINE_INT32(MIS_YAWMODE, 1);
