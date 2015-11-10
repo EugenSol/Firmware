@@ -87,7 +87,7 @@
 #include <uORB/topics/mission_result.h>
 #include <uORB/topics/geofence_result.h>
 #include <uORB/topics/telemetry_status.h>
-#include <uORB/topics/vtol_vehicle_status.h>
+//#include <uORB/topics/vtol_vehicle_status.h>
  #include <uORB/topics/vehicle_land_detected.h>
 
 #include <drivers/drv_led.h>
@@ -1099,11 +1099,11 @@ int commander_thread_main(int argc, char *argv[])
 	struct actuator_controls_s actuator_controls;
 	memset(&actuator_controls, 0, sizeof(actuator_controls));
 
-	/* Subscribe to vtol vehicle status topic */
-	int vtol_vehicle_status_sub = orb_subscribe(ORB_ID(vtol_vehicle_status));
-	struct vtol_vehicle_status_s vtol_status;
-	memset(&vtol_status, 0, sizeof(vtol_status));
-	vtol_status.vtol_in_rw_mode = true;		//default for vtol is rotary wing
+//	/* Subscribe to vtol vehicle status topic */
+//	int vtol_vehicle_status_sub = orb_subscribe(ORB_ID(vtol_vehicle_status));
+//	struct vtol_vehicle_status_s vtol_status;
+//	memset(&vtol_status, 0, sizeof(vtol_status));
+//	vtol_status.vtol_in_rw_mode = true;		//default for vtol is rotary wing
 
 
 	control_status_leds(&status, &armed, true);
@@ -1114,7 +1114,7 @@ int commander_thread_main(int argc, char *argv[])
 
 	/* update vehicle status to find out vehicle type (required for preflight checks) */
 	param_get(_param_sys_type, &(status.system_type)); // get system type
-	status.is_rotary_wing = is_rotary_wing(&status) || is_vtol(&status);
+	status.is_rotary_wing = is_rotary_wing(&status); //|| is_vtol(&status);
 
 	get_circuit_breaker_params();
 
@@ -1197,15 +1197,15 @@ int commander_thread_main(int argc, char *argv[])
 				}
 
 				/* disable manual override for all systems that rely on electronic stabilization */
-				if (is_rotary_wing(&status) || (is_vtol(&status) && vtol_status.vtol_in_rw_mode)) {
+				if (is_rotary_wing(&status)) {
 					status.is_rotary_wing = true;
 
 				} else {
 					status.is_rotary_wing = false;
 				}
-
-				/* set vehicle_status.is_vtol flag */
-				status.is_vtol = is_vtol(&status);
+//
+//				/* set vehicle_status.is_vtol flag */
+//				status.is_vtol = is_vtol(&status);
 
 				/* check and update system / component ID */
 				param_get(_param_system_id, &(status.system_id));
@@ -1396,19 +1396,19 @@ int commander_thread_main(int argc, char *argv[])
 			}
 		}
 
-		/* update vtol vehicle status*/
-		orb_check(vtol_vehicle_status_sub, &updated);
-
-		if (updated) {
-			/* vtol status changed */
-			orb_copy(ORB_ID(vtol_vehicle_status), vtol_vehicle_status_sub, &vtol_status);
-			status.vtol_fw_permanent_stab = vtol_status.fw_permanent_stab;
-
-			/* Make sure that this is only adjusted if vehicle really is of type vtol*/
-			if (is_vtol(&status)) {
-				status.is_rotary_wing = vtol_status.vtol_in_rw_mode;
-			}
-		}
+//		/* update vtol vehicle status*/
+//		orb_check(vtol_vehicle_status_sub, &updated);
+//
+//		if (updated) {
+//			/* vtol status changed */
+//			orb_copy(ORB_ID(vtol_vehicle_status), vtol_vehicle_status_sub, &vtol_status);
+//			status.vtol_fw_permanent_stab = vtol_status.fw_permanent_stab;
+//
+//			/* Make sure that this is only adjusted if vehicle really is of type vtol*/
+//			if (is_vtol(&status)) {
+//				status.is_rotary_wing = vtol_status.vtol_in_rw_mode;
+//			}
+//		}
 
 		/* update global position estimate */
 		orb_check(global_position_sub, &updated);
@@ -2352,7 +2352,7 @@ set_control_mode()
 {
 	/* set vehicle_control_mode according to set_navigation_state */
 	control_mode.flag_armed = armed.armed;
-	control_mode.flag_external_manual_override_ok = (!status.is_rotary_wing && !status.is_vtol);
+	control_mode.flag_external_manual_override_ok = (!status.is_rotary_wing);
 	control_mode.flag_system_hil_enabled = status.hil_state == vehicle_status_s::HIL_STATE_ON;
 	control_mode.flag_control_offboard_enabled = false;
 
@@ -2360,8 +2360,8 @@ set_control_mode()
 	case vehicle_status_s::NAVIGATION_STATE_MANUAL:
 		control_mode.flag_control_manual_enabled = true;
 		control_mode.flag_control_auto_enabled = false;
-		control_mode.flag_control_rates_enabled = (status.is_rotary_wing || status.vtol_fw_permanent_stab);
-		control_mode.flag_control_attitude_enabled = (status.is_rotary_wing || status.vtol_fw_permanent_stab);
+		control_mode.flag_control_rates_enabled = (status.is_rotary_wing);
+		control_mode.flag_control_attitude_enabled = (status.is_rotary_wing);
 		control_mode.flag_control_altitude_enabled = false;
 		control_mode.flag_control_climb_rate_enabled = false;
 		control_mode.flag_control_position_enabled = false;

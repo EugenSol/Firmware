@@ -97,7 +97,7 @@
 #include <uORB/topics/servorail_status.h>
 #include <uORB/topics/wind_estimate.h>
 #include <uORB/topics/encoders.h>
-#include <uORB/topics/vtol_vehicle_status.h>
+//#include <uORB/topics/vtol_vehicle_status.h>
 #include <uORB/topics/time_offset.h>
 #include <uORB/topics/mc_att_ctrl_status.h>
 
@@ -1033,7 +1033,7 @@ int sdlog2_thread_main(int argc, char *argv[])
 		struct satellite_info_s sat_info;
 		struct wind_estimate_s wind_estimate;
 		struct encoders_s encoders;
-		struct vtol_vehicle_status_s vtol_status;
+		//struct vtol_vehicle_status_s vtol_status;
 		struct time_offset_s time_offset;
 		struct mc_att_ctrl_status_s mc_att_ctrl_status;
 	} buf;
@@ -1055,7 +1055,7 @@ int sdlog2_thread_main(int argc, char *argv[])
 			struct log_GPS_s log_GPS;
 			struct log_ATTC_s log_ATTC;
 			struct log_STAT_s log_STAT;
-			struct log_VTOL_s log_VTOL;
+			//struct log_VTOL_s log_VTOL;
 			struct log_RC_s log_RC;
 			struct log_OUT0_s log_OUT0;
 			struct log_AIRS_s log_AIRS;
@@ -1092,7 +1092,7 @@ int sdlog2_thread_main(int argc, char *argv[])
 	struct {
 		int cmd_sub;
 		int status_sub;
-		int vtol_status_sub;
+		//int vtol_status_sub;
 		int sensor_sub;
 		int att_sub;
 		int att_sp_sub;
@@ -1128,7 +1128,7 @@ int sdlog2_thread_main(int argc, char *argv[])
 
 	subs.cmd_sub = -1;
 	subs.status_sub = -1;
-	subs.vtol_status_sub = -1;
+	//subs.vtol_status_sub = -1;
 	subs.gps_pos_sub = -1;
 	subs.sensor_sub = -1;
 	subs.att_sub = -1;
@@ -1258,12 +1258,12 @@ int sdlog2_thread_main(int argc, char *argv[])
 			LOGBUFFER_WRITE_AND_COUNT(STAT);
 		}
 
-		/* --- VTOL VEHICLE STATUS --- */
-		if(copy_if_updated(ORB_ID(vtol_vehicle_status), &subs.vtol_status_sub, &buf.vtol_status)) {
-			log_msg.msg_type = LOG_VTOL_MSG;
-			log_msg.body.log_VTOL.airspeed_tot = buf.vtol_status.airspeed_tot;
-			LOGBUFFER_WRITE_AND_COUNT(VTOL);
-		}
+//		/* --- VTOL VEHICLE STATUS --- */
+//		if(copy_if_updated(ORB_ID(vtol_vehicle_status), &subs.vtol_status_sub, &buf.vtol_status)) {
+//			log_msg.msg_type = LOG_VTOL_MSG;
+//			log_msg.body.log_VTOL.airspeed_tot = buf.vtol_status.airspeed_tot;
+//			LOGBUFFER_WRITE_AND_COUNT(VTOL);
+//		}
 
 		/* --- GPS POSITION - UNIT #1 --- */
 		if (gps_pos_updated) {
@@ -1536,15 +1536,15 @@ int sdlog2_thread_main(int argc, char *argv[])
 			LOGBUFFER_WRITE_AND_COUNT(ATTC);
 		}
 
-		/* --- ACTUATOR CONTROL FW VTOL --- */
-		if(copy_if_updated(ORB_ID(actuator_controls_1), &subs.act_controls_1_sub,&buf.act_controls)) {
-			log_msg.msg_type = LOG_ATC1_MSG;
-			log_msg.body.log_ATTC.roll = buf.act_controls.control[0];
-			log_msg.body.log_ATTC.pitch = buf.act_controls.control[1];
-			log_msg.body.log_ATTC.yaw = buf.act_controls.control[2];
-			log_msg.body.log_ATTC.thrust = buf.act_controls.control[3];
-			LOGBUFFER_WRITE_AND_COUNT(ATTC);
-		}
+//		/* --- ACTUATOR CONTROL FW VTOL --- */
+//		if(copy_if_updated(ORB_ID(actuator_controls_1), &subs.act_controls_1_sub,&buf.act_controls)) {
+//			log_msg.msg_type = LOG_ATC1_MSG;
+//			log_msg.body.log_ATTC.roll = buf.act_controls.control[0];
+//			log_msg.body.log_ATTC.pitch = buf.act_controls.control[1];
+//			log_msg.body.log_ATTC.yaw = buf.act_controls.control[2];
+//			log_msg.body.log_ATTC.thrust = buf.act_controls.control[3];
+//			LOGBUFFER_WRITE_AND_COUNT(ATTC);
+//		}
 
 		/* --- LOCAL POSITION --- */
 		if (copy_if_updated(ORB_ID(vehicle_local_position), &subs.local_pos_sub, &buf.local_pos)) {
